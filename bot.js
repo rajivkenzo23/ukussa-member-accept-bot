@@ -162,17 +162,21 @@ bot.onText(/\/check_members/, async (msg) => {
     );
 
     await client.connect();
-    await bot.editMessageText('📥 <b>Scraping live member list from Free Channel...</b>', {
+    await bot.editMessageText('📥 <b>Scraping live member lists...</b>\nFetching participants from both channels.', {
       chat_id: statusMsg.chat.id,
       message_id: statusMsg.message_id,
       parse_mode: 'HTML'
     });
 
-    // Fetch participants of the Free Channel
+    // 1. Fetch participants of the Free Channel
     const participants = await client.getParticipants(FREE_CHAT_ID, { limit: 10000 });
     const total = participants.length;
 
-    await bot.editMessageText(`🔍 <b>Auditing ${total} members...</b>\nChecking if each member is still in the Free Links Channel.`, {
+    // 2. Fetch participants of the Free Links Channel
+    const linksParticipants = await client.getParticipants(FREE_LINKS_CHAT_ID, { limit: 10000 });
+    const linksSet = new Set(linksParticipants.map(u => u.id.toString()));
+
+    await bot.editMessageText(`🔍 <b>Auditing ${total} members...</b>\nComparing lists in memory (instant lookup).`, {
       chat_id: statusMsg.chat.id,
       message_id: statusMsg.message_id,
       parse_mode: 'HTML'
@@ -183,12 +187,13 @@ bot.onText(/\/check_members/, async (msg) => {
 
     for (const user of participants) {
       checked++;
-      const mId = parseInt(user.id.toString());
+      const mIdStr = user.id.toString();
+      const mId = parseInt(mIdStr);
       
       // Skip bots and admins from getting kicked
       if (user.bot || isAdmin(mId)) continue;
 
-      const isStillInLinks = await isUserInLinksChannel(mId);
+      const isStillInLinks = linksSet.has(mIdStr);
 
       if (!isStillInLinks) {
         const nameStr = user.firstName || `User ${mId}`;
@@ -205,7 +210,7 @@ bot.onText(/\/check_members/, async (msg) => {
         }
       }
 
-      // Add a small delay to avoid Telegram rate limits
+      // Add a tiny delay to avoid hitting Telegram message send rate limits
       await new Promise(resolve => setTimeout(resolve, 80));
     }
 
