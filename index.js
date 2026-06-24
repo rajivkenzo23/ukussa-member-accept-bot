@@ -89,6 +89,15 @@ function installDependencies() {
 }
 
 function setupRepository() {
+  const { existsSync } = require('fs');
+  const gitDir = path.join(BOT_DIR, '.git');
+  if (!existsSync(gitDir)) {
+    console.log('.git directory not found. Initializing git repository...');
+    spawnSync('git', ['init'], { cwd: BOT_DIR, stdio: 'inherit' });
+    spawnSync('git', ['remote', 'add', 'origin', REPO_URL], { cwd: BOT_DIR, stdio: 'inherit' });
+    spawnSync('git', ['branch', '-M', 'main'], { cwd: BOT_DIR, stdio: 'inherit' });
+  }
+
   console.log('Pulling latest updates from GitHub...');
   spawnSync('git', ['fetch', '--all'], { cwd: BOT_DIR, stdio: 'inherit' });
   spawnSync('git', ['reset', '--hard', 'origin/main'], { cwd: BOT_DIR, stdio: 'inherit' });
