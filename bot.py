@@ -18,7 +18,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Configurations
-BOT_TOKEN = os.getenv("BOT_TOKEN", "8088741380:AAGnTjXah3Whv3C24Nw9SujKIDVS0pF_fY4")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "8088741380:AAFO9qaHkl_ULBaE0AbJoMF--zDMXdbuxhE")
 FREE_LINKS_CHAT_ID = int(os.getenv("FREE_LINKS_CHAT_ID", -1003966168979))
 FREE_CHAT_ID = int(os.getenv("FREE_CHAT_ID", -1003924977765))
 
