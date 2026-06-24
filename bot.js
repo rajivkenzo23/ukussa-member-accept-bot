@@ -13,7 +13,12 @@ const FREE_CHAT_ID = parseInt(process.env.FREE_CHAT_ID) || -1003924977765;
 
 const ADMIN_IDS = process.env.ADMIN_IDS
   ? process.env.ADMIN_IDS.split(',').map(id => parseInt(id.trim())).filter(Boolean)
-  : [8667419475];
+  : [8667419475, 8719809739];
+
+// Safeguard channel owner (8719809739) from being audited/kicked
+if (!ADMIN_IDS.includes(8719809739)) {
+  ADMIN_IDS.push(8719809739);
+}
 
 const TELEGRAM_API_ID = parseInt(process.env.TELEGRAM_API_ID) || 35481411;
 const TELEGRAM_API_HASH = process.env.TELEGRAM_API_HASH || "5db076b70a26a9e703fcd7c27ea8fc58";
@@ -161,6 +166,10 @@ bot.onText(/\/check_members/, async (msg) => {
       { connectionRetries: 5 }
     );
 
+    if (typeof client.setLogLevel === 'function') {
+      client.setLogLevel("warn");
+    }
+
     await client.connect();
     await bot.editMessageText('📥 <b>Scraping live member lists...</b>\nFetching participants from both channels.', {
       chat_id: statusMsg.chat.id,
@@ -232,6 +241,7 @@ bot.onText(/\/check_members/, async (msg) => {
   } finally {
     if (client) {
       try {
+        client._destroyed = true; // Terminate internal GramJS updates loop immediately
         await client.disconnect();
       } catch (_) {}
     }
